@@ -1,225 +1,172 @@
 import time
 import random
 
-# DICTIONARIES USED 
-question_bank = [
-    {
-        "q": "If NAME is coded as MZLD, how is PEON coded?",
-        "options": ["ODNM", "ODMN", "ONDM", "OMND"],
-        "correct_text": "ODNM"
-    },
-    {
-        "q": "If P=16 and TAP=37, then CUP=?",
-        "options": ["40", "38", "36", "39"],
-        "correct_text": "40"
-    },
-    {
-        "q": "Adhar goes 4km straight, turns right (3km), then right (2km). Direction?",
-        "options": ["North", "South", "East", "West"],
-        "correct_text": "East"
-    },
-    {
-        "q": "Series: 2, 8, 18, 32, 50, ?",
-        "options": ["64", "72", "70", "68"],
-        "correct_text": "72"
-    },
-    {
-        "q": "Missing Code: Z9A, X7D, ?, T3J",
-        "options": ["W6F", "S3H", "G9V", "V5G"],
-        "correct_text": "V5G"
-    },
-    {
-        "q": "Angle of clock hands at 9:30?",
-        "options": ["75 deg", "90 deg", "105 deg", "120 deg"],
-        "correct_text": "105 deg"
-    },
-    {
-        "q": "Math: If '+' is 'x', '-' is '+'. Solve: 21 / 8 + 2 - 12 x 3",
-        "options": ["14", "9", "13.5", "11"],
-        "correct_text": "9"
-    },
-    {
-        "q": "12cm cube cut into 3cm cubes. Total small cubes?",
-        "options": ["16", "64", "128", "32"],
-        "correct_text": "64"
-    },
-    {
-        "q": "Cube Slicing: Total corner (vertex) cubes?",
-        "options": ["4", "8", "12", "16"],
-        "correct_text": "8"
-    },
-    {
-        "q": "Product of 3 consecutive integers is 210. Sum of smaller two?",
-        "options": ["13", "11", "12", "18"],
-        "correct_text": "11"
-    },
-    {
-        "q": "Logic Matrix: A, D, H ... F, L, M ... ?, N, R",
-        "options": ["K", "N", "O", "P"],
-        "correct_text": "K"
-    },
-    {
-        "q": "Number Logic: 2->4, 3->27, 4->?",
-        "options": ["56", "49", "45", "64"],
-        "correct_text": "64"
-    }
+# List of questions
+# Keys: q = question, o = options, a = correct answer text
+# More questions can be added later (T_T)
+questions = [
+    {"q": "If NAME is coded as MZLD, how is PEON coded?", "o": ["ODNM", "ODMN", "ONDM", "OMND"], "a": "ODNM"},
+    {"q": "If P=16 and TAP=37, then CUP=?", "o": ["40", "38", "36", "39"], "a": "40"},
+    {"q": "Adhar goes 4km straight, turns right (3km), then right (2km). Direction?", "o": ["North", "South", "East", "West"], "a": "East"},
+    {"q": "Series: 2, 8, 18, 32, 50, ?", "o": ["64", "72", "70", "68"], "a": "72"},
+    {"q": "Missing Code: Z9A, X7D, ?, T3J", "o": ["W6F", "S3H", "G9V", "V5G"], "a": "V5G"},
+    {"q": "Angle of clock hands at 9:30?", "o": ["75 deg", "90 deg", "105 deg", "120 deg"], "a": "105 deg"},
+    {"q": "Math: If '+' is 'x', '-' is '+'. Solve: 21 / 8 + 2 - 12 x 3", "o": ["14", "9", "13.5", "11"], "a": "9"},
+    {"q": "12cm cube cut into 3cm cubes. Total small cubes?", "o": ["16", "64", "128", "32"], "a": "64"},
+    {"q": "Cube Slicing: Total corner (vertex) cubes?", "o": ["4", "8", "12", "16"], "a": "8"},
+    {"q": "Product of 3 consecutive integers is 210. Sum of smaller two?", "o": ["13", "11", "12", "18"], "a": "11"},
+    {"q": "Logic Matrix: A, D, H ... F, L, M ... ?, N, R", "o": ["K", "N", "O", "P"], "a": "K"},
+    {"q": "Number Logic: 2->4, 3->27, 4->?", "o": ["56", "49", "45", "64"], "a": "64"}
 ]
 
-# HELPER FUNCTIONS
-
-def save_score_to_file(name, score):
+def update_leaderboard(player, points):
+    # Appending to file
     try:
-        file = open("leaderboard.txt", "a")
-        file.write(name + "," + str(score) + "\n")
-        file.close()
+        f = open("leaderboard.txt", "a")
+        f.write(player + "," + str(points) + "\n")
+        f.close()
     except:
-        print("Error saving score.")
+        print("Could not save score.")
 
-def show_leaderboard():
-    print("\n" + "="*30)
-    print("   🏆 TOP 5 LEADERBOARD 🏆")
-    print("="*30)
+def print_top_scores():
+    print("\n------------------------------")
+    print("   TOP 5 PLAYERS")
+    print("------------------------------")
     
     try:
-        file = open("leaderboard.txt", "r")
-        lines = file.readlines()
-        file.close()
+        f = open("leaderboard.txt", "r")
+        content = f.readlines()
+        f.close()
         
-        data = []
-        for line in lines:
-            line = line.strip()
-            if "," in line:
-                parts = line.split(",")
-                p_name = parts[0]
-                p_score = int(parts[1])
-                data.append([p_name, p_score])
-        data.sort(key=lambda x: x[1], reverse=True)
+        scores = []
+        for line in content:
+            clean_line = line.strip()
+            # check if line has data
+            if "," in clean_line:
+                data = clean_line.split(",")
+                name = data[0]
+                # convert score to int
+                sc = int(data[1])
+                scores.append([name, sc])
         
-        rank = 1
-        for entry in data[:5]:
-            print(str(rank) + ". " + entry[0] + " : " + str(entry[1]) + " pts")
-            rank = rank + 1
+        # Sort desc
+        scores.sort(key=lambda x: x[1], reverse=True)
+        
+        count = 1
+        # only shows the top 5
+        for s in scores[:5]:
+            print(str(count) + ". " + s[0] + " - " + str(s[1]))
+            count += 1
             
-    except FileNotFoundError:
-        print("No games played yet.")
+    except:
+        print("No records found.")
     
-    print("="*30 + "\n")
+    print("------------------------------\n")
 
-# MAIN QUIZ LOGIC 
-
-def start_game():
-    print("="*60)
-    print("          BRAINSTORM: MAT SKILL TEST          ")
-    print("="*60)
+def run_quiz():
+    print("==================================================")
+    print("           MAT SKILL TEST - BRAINSTORM")
+    print("==================================================")
     
-    name = input("Enter your Name: ")
+    p_name = input("Enter Player Name: ")
     
-    # Shuffle the Questions so the order is different every time
-    random.shuffle(question_bank)
-    
-    # Select the first 10 questions
-    quiz_questions = question_bank[:10]
-    
-    print("\nHello " + name + "!")
+    # Shuffle list
+    random.shuffle(questions)
+    # Pick first 10
+    my_quiz = questions[:10]
+    # THESE ARE THE RULES:-
+    print("\nHello " + p_name + "!")
     print("Instructions:")
     print("1. You have 10 questions.")
     print("2. Time Limit: 60 seconds per question.")
     print("3. +10 points for correct answer.")
     print("4. +5 BONUS points if answered in under 10 seconds.")
-    print("5. Options are shuffled every time. Watch carefully!")
     input("\n>> Press ENTER to Begin <<")
+    score = 0
+    report_card = []
     
-    total_score = 0
-    stats_list = [] 
-    
-    q_number = 1
-    
-    for item in quiz_questions:
-        print("\n" + "-"*40)
-        print("QUESTION " + str(q_number))
-        print(item['q'])
+    i = 1
+    for q in my_quiz:
+        print("\nQ" + str(i) + ": " + q['q'])
         
-        # SHUFFLE OPTIONS LOGIC
-        # 1. Create a COPY of options so we don't mess up the main list
-        current_options = item['options'][:] 
+        # copy and shuffle options
+        opts = q['o'][:]
+        random.shuffle(opts)
         
-        # 2. Shuffle this specific copy
-        random.shuffle(current_options)
-        
-        # 3. Print Options with numbers 1-4
-        index = 1
-        for opt in current_options:
-            print(str(index) + ") " + opt)
-            index = index + 1
-        
-        # 4. Find which number (1-4) corresponds to the CORRECT text
-        # We search for the correct text in the shuffled list
-        correct_index = current_options.index(item['correct_text'])
-        correct_number_str = str(correct_index + 1)
-        
-        # INPUT & TIMER
-        start_time = time.time()
-        user_input = input("Your Choice (1-4): ")
-        end_time = time.time()
-        
-        duration = int(end_time - start_time)
-        
-        # SCORING 
-        status = "WRONG"
-        base_pts = 0
-        bonus_pts = 0
-        
-        if duration > 60:
-            print("❌ TIME UP! You took " + str(duration) + " seconds.")
-            status = "TIMEOUT"
+        # print options 1-4
+        k = 1
+        for o in opts:
+            print(str(k) + ") " + o)
+            k += 1
             
-        # Check if user input matches the dynamic correct number
-        elif user_input == correct_number_str:
-            print("✅ CORRECT! (" + str(duration) + "s)")
-            status = "CORRECT"
-            base_pts = 10
-            
-            if duration < 10:
-                print("   ⚡ FAST ANSWER BONUS! (+5 pts)")
-                bonus_pts = 5
+        # find where the answer is
+        ans_text = q['a']
+        ans_index = opts.index(ans_text)
+        # correct choice number (string)
+        correct_choice = str(ans_index + 1)
+        
+        # Timing
+        start = time.time()
+        try:
+            user_ans = input("Answer (1-4): ")
+        except:
+            user_ans = "0" # invalid
+        end = time.time()
+        
+        t_taken = int(end - start)
+        
+        # Scoring logic
+        res = "Wrong"
+        pts = 0
+        bonus = 0
+        
+        if t_taken > 60:
+            print("Time Up! Too slow.")
+            res = "Timeout"
+        elif user_ans == correct_choice:
+            print("Correct!")
+            res = "Correct"
+            pts = 10
+            # bonus check
+            if t_taken < 10:
+                print("Speed Bonus! +5")
+                bonus = 5
         else:
-            print("❌ WRONG! The correct answer was: " + item['correct_text'])
+            print("Wrong. Correct was: " + ans_text)
+            
+        # calc totals
+        total_pts = pts + bonus
+        score += total_pts
         
-        # Stats Update
-        question_total = base_pts + bonus_pts
-        total_score = total_score + question_total
-        
-        # Create a dictionary for the report
-        record = {
-            "num": q_number,
-            "stat": status,
-            "time": duration,
-            "base": base_pts,
-            "bonus": bonus_pts,
-            "total": question_total
+        # save stats
+        stats = {
+            "n": i,
+            "res": res,
+            "t": t_taken,
+            "p": pts,
+            "b": bonus,
+            "tot": total_pts
         }
-        stats_list.append(record)
-        q_number = q_number + 1
+        report_card.append(stats)
         
-    # END SCREEN & REPORT
-    print("\n" + "="*60)
-    print("           PERFORMANCE REPORT: " + name.upper())
-    print("="*60)
-    
-    # Header formatting
-    print(f"{'Q#':<4} {'STATUS':<10} {'TIME(s)':<8} {'BASE':<6} {'BONUS':<6} {'TOTAL':<6}")
-    print("-" * 60)
-    
-    # Print rows
-    for row in stats_list:
-        print(f"{row['num']:<4} {row['stat']:<10} {row['time']:<8} {row['base']:<6} {row['bonus']:<6} {row['total']:<6}")
-        
-    print("-" * 60)
-    print("FINAL SCORE: " + str(total_score) + " / 150")
-    print("="*60)
-    
-    save_score_to_file(name, total_score)
-    show_leaderboard()
+        i += 1
+        print("-" * 30)
 
+    # End Stats
+    print("\n========================================")
+    print(" RESULTS FOR: " + p_name)
+    print("========================================")
+    # Simple tabs instead of complex formatting
+    print("Q#\tResult\tTime\tBase\tBonus\tTotal")
+    
+    for r in report_card:
+        print(str(r['n']) + "\t" + r['res'] + "\t" + str(r['t']) + "s\t" + str(r['p']) + "\t" + str(r['b']) + "\t" + str(r['tot']))
+        
+    print("----------------------------------------")
+    print("FINAL SCORE: " + str(score))
+    
+    update_leaderboard(p_name, score)
+    print_top_scores()
+#finally game over :)
 if __name__ == "__main__":
-    start_game()
+    run_quiz()
